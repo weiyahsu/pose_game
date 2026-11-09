@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>動肩膀：一場範例</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #e7e1d6;
+      --paper: #fbf8f2;
+      --ink: #1c1915;
+      --muted: #5e574c;
+      --line: #e4d9c8;
+      --teal: #0f5c56;
+      --teal-soft: #e5f2f0;
+      --warn: #8d2f1c;
+      --ghost: #5f8f88;
+      --wood: #e0b15a;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+    button, input { font: inherit; }
+    button {
+      border: 0;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+    #pick, #app { min-height: 100%; }
+    #pick {
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+    }
+    .card {
+      width: min(640px, 100%);
+      background: var(--paper);
+      border-radius: 28px;
+      padding: 36px 32px 28px;
+    }
+    .kicker {
+      display: inline-block;
+      margin: 0 0 10px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    h1 { margin: 0 0 8px; font-size: 40px; line-height: 1.2; }
+    .lede { margin: 0 0 8px; font-size: 20px; line-height: 1.6; }
+    .note { margin: 0 0 22px; color: var(--muted); line-height: 1.6; }
+    .choices { display: grid; gap: 10px; }
+    .choices button { font-size: 22px; padding: 18px 20px; }
+    .warn-note { margin: 16px 0 0; color: var(--warn); font-size: 15px; }
+    #app { display: none; padding: 16px 16px 20px; }
+    #app.on { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 10px; height: 100%; }
+    header.bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px;
+    }
+    header.bar h1 { font-size: 22px; }
+    #stop { background: var(--warn); }
+    #stage {
+      position: relative;
+      min-height: 0;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #d9cfc0;
+    }
+    #stage.camera { background: #241f1b; }
+    canvas { width: 100%; height: 100%; display: block; }
+    button.light { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 14px 16px 12px;
+      pointer-events: none;
+    }
+    #overlay > * { pointer-events: auto; }
+    #pattern {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    #icons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    #icons figure {
+      margin: 0;
+      width: 118px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 4px 8px 8px;
+    }
+    #icons svg { width: 100%; height: auto; display: block; }
+    #icons figcaption { font-weight: 700; font-size: 18px; }
+    #role { margin: 8px 0 0; color: var(--teal); font-weight: 700; font-size: 20px; }
+    #pattern, #status, #cue, #sub {
+      background: rgba(251, 248, 242, .92);
+      border-radius: 16px;
+    }
+    #pattern, #status { padding: 4px 14px; }
+    #cue {
+      margin: 8px 0 0;
+      padding: 0 14px;
+      font-size: clamp(48px, 8vw, 84px);
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    #pattern:empty, #status:empty, #cue:empty, #sub:empty, #role:empty { display: none; }
+    #cue, #sub { width: fit-content; margin-left: auto; margin-right: auto; }
+    #cue.bad { color: var(--warn); }
+    #sub { margin: 4px 0 0; font-size: 18px; color: var(--muted); font-weight: 700; }
+    #beat {
+      position: absolute;
+      top: 16px;
+      left: 18px;
+      margin: 0;
+      font-size: 42px;
+      font-weight: 700;
+    }
+    #go { margin-top: 4px; font-size: 22px; padding: 10px 36px; background: var(--teal); }
+    #status { margin: 8px 0 0; font-size: 28px; font-weight: 700; }
+    #caption { min-height: 48px; text-align: center; }
+    #moveName { margin: 0; font-size: 28px; font-weight: 700; }
+    #effort { margin: 2px 0 0; color: var(--teal); font-weight: 700; }
+    #track {
+      position: relative;
+      height: 84px;
+      background: var(--paper);
+      border-radius: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: end;
+      padding: 36px 0 10px;
+    }
+    #track span { text-align: center; color: var(--muted); font-size: 13px; font-weight: 700; }
+    #track span::before {
+      content: "";
+      display: block;
+      width: 14px;
+      height: 14px;
+      margin: 0 auto 6px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+    #rail {
+      position: absolute;
+      left: 12.5%;
+      right: 12.5%;
+      top: 30px;
+      height: 4px;
+      background: var(--line);
+    }
+    #crate {
+      position: absolute;
+      top: 8px;
+      width: 46px;
+      height: 32px;
+      margin-left: -23px;
+      background: var(--wood);
+      border: 3px solid var(--ink);
+      border-radius: 5px;
+      transition: left .45s ease;
+    }
+    #crate::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 12px;
+      border-top: 3px solid var(--ink);
+    }
+    #rest, #end {
+      position: absolute;
+      inset: 0;
+      background: rgba(251, 248, 242, .94);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+    }
+    #rest.on, #end.on { display: flex; }
+    #rest p, #end p { margin: 0; font-size: 32px; font-weight: 700; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    #tests { display: none; max-width: 880px; margin: 20px auto; padding: 16px; }
+    #tests.on { display: block; }
+    #tests li.fail { color: var(--warn); }
+    video#cam { position: fixed; width: 640px; height: 480px; left: -2000px; top: 0; }
+  </style>
+</head>
+<body>
+  <section id="pick">
+    <div class="card">
+      <p class="kicker">一場範例</p>
+      <h1>動肩膀</h1>
+      <p class="lede">身邊，前面，兩側。</p>
+      <p class="note">先看兩個圖示，按開始就收起來。前三拍畫面上不提示，第四拍才出現虛影。沒對上就繼續這一拍，不重來。</p>
+      <div class="choices">
+        <button id="watch" type="button">看一場怎麼走</button>
+        <button id="solo" class="light" type="button">一個人玩</button>
+        <button id="duo" class="light" type="button">兩個人玩</button>
+      </div>
+      <p class="warn-note">痛、暈、喘，就按停。</p>
+    </div>
+  </section>
+
+  <section id="app">
+    <header class="bar">
+      <h1>動肩膀</h1>
+      <button id="stop" type="button">停</button>
+    </header>
+    <div id="stage">
+      <canvas id="view"></canvas>
+      <div id="overlay">
+        <p id="role"></p>
+        <p id="pattern"></p>
+        <div id="icons"></div>
+        <p id="status"></p>
+        <p id="beat"></p>
+        <div id="rest">
+          <p>先休息</p>
+          <div class="row">
+            <button id="resume" type="button">繼續</button>
+            <button id="quit" class="light" type="button">結束</button>
+          </div>
+        </div>
+        <div id="end">
+          <p>到終點了</p>
+          <div class="row">
+            <button id="again" type="button">再看一次</button>
+            <button id="playSolo" class="light" type="button">一個人玩</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="caption">
+      <p id="cue"></p>
+      <p id="sub"></p>
+      <p id="moveName"></p>
+      <p id="effort"></p>
+      <button id="go" type="button">開始</button>
+    </div>
+    <div id="track">
+      <div id="rail"></div>
+      <i id="crate"></i>
+      <span>起點</span>
+      <span></span>
+      <span></span>
+      <span>終點</span>
+    </div>
+  </section>
+  <video id="cam" playsinline muted></video>
+  <ol id="tests"></ol>
+
+  <script type="module">
+    const MOVES = [
+      { id: "open", name: "姿勢打開", effort: "肩胛骨往後收，脖子放鬆。", word: "身邊" },
+      { id: "front", name: "向前平舉", effort: "肩膀前側把上臂抬起，脖子不要幫忙。", word: "前面" },
+      { id: "side", name: "向側平舉", effort: "肩膀外側把上臂抬起。", word: "兩側" }
+    ];
+    const KEYS = ["lear", "rear", "lsh", "rsh", "lel", "rel", "lwr", "rwr", "lhip", "rhip"];
+    const IDX = { lear: 7, rear: 8, lsh: 11, rsh: 12, lel: 13, rel: 14, lwr: 15, rwr: 16, lhip: 23, rhip: 24 };
+
+    const pick = document.getElementById("pick");
+    const app = document.getElementById("app");
+    const stage = document.getElementById("stage");
+    const canvas = document.getElementById("view");
+    const ctx = canvas.getContext("2d");
+    const patternEl = document.getElementById("pattern");
+    const iconsEl = document.getElementById("icons");
+    const roleEl = document.getElementById("role");
+    const cueEl = document.getElementById("cue");
+    const subEl = document.getElementById("sub");
+    const statusEl = document.getElementById("status");
+    const beatEl = document.getElementById("beat");
+    const goBtn = document.getElementById("go");
+    const moveNameEl = document.getElementById("moveName");
+    const effortEl = document.getElementById("effort");
+    const crateEl = document.getElementById("crate");
+    const restEl = document.getElementById("rest");
+    const endEl = document.getElementById("end");
+    const cam = document.getElementById("cam");
+
+    const S = resetState();
+    let audioCtx = null;
+    let firedBeat = 0;
+    let stream = null;
+    let landmarker = null;
+    let lastDetect = 0;
+    let detectStamp = 0;
+    let view = { w: 640, h: 480 };
+
+    function resetState() {
+      return {
+        phase: "pick",
+        mode: "watch",
+        players: 2,
+        cell: 0,
+        step: 0,
+        calib: [],
+        elapsed: 0,
+        beat: 0,
+        frames: [],
+        cue: "",
+        lastSpoken: "",
+        lastSpeakAt: 0,
+        held: false,
+        paused: false,
+        calMs: 0,
+        calNote: "手放下，坐穩",
+        anchor: null,
+        sums: null,
+        counts: null,
+        previewMs: 0,
+        advanceMs: 0,
+        centers: null,
+        poses: [],
+        sampleOk: false,
+        noPersonMs: 0,
+        cw: 800,
+        ch: 500
+      };
+    }
+
+    function mid(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+    function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+    function lerp(a, b, t) { return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+    function angleAt(a, b, c) {
+      const ux = a.x - b.x, uy = a.y - b.y, vx = c.x - b.x, vy = c.y - b.y;
+      const d = Math.hypot(ux, uy) * Math.hypot(vx, vy);
+      if (d < 1e-4) return 0;
+      const cos = Math.max(-1, Math.min(1, (ux * vx + uy * vy) / d));
+      return Math.acos(cos) * 180 / Math.PI;
+    }
+    function elevation(shoulder, elbow) {
+      const ax = elbow.x - shoulder.x, ay = elbow.y - shoulder.y;
+      const d = Math.hypot(ax, ay);
+      if (d < 1e-4) return 0;
+      const cos = Math.max(-1, Math.min(1, ay / d));
+      return Math.acos(cos) * 180 / Math.PI;
+    }
+    function earYOf(p) {
+      const ears = [];
+      if (p.lear.v >= 0.5) ears.push(p.lear);
+      if (p.rear.v >= 0.5) ears.push(p.rear);
+      if (!ears.length) return null;
+      return ears.reduce((s, e) => s + e.y, 0) / ears.length;
+    }
+    function armTargets(side, move, sh, upper, fore, torso) {
+      const s = side === "left" ? -1 : 1;
+      if (move === "open") {
+        return {
+          elbow: { x: sh.x + s * upper * 0.08, y: sh.y + upper * 0.98 },
+          wrist: { x: sh.x + s * upper * 0.1, y: sh.y + upper + fore * 0.96 }
+        };
+      }
+      if (move === "front") {
+        return {
+          elbow: { x: sh.x + s * upper * 0.55, y: sh.y - torso * 0.06 },
+          wrist: { x: sh.x + s * upper * 0.22, y: sh.y - torso * 0.2 }
+        };
+      }
+      return {
+        elbow: { x: sh.x + s * upper, y: sh.y },
+        wrist: { x: sh.x + s * (upper + fore * 0.96), y: sh.y }
+      };
+    }
+    function along(rest, target, current) {
+      const dx = target.x - rest.x, dy = target.y - rest.y;
+      const len2 = dx * dx + dy * dy;
+      if (len2 < 1e-4) return 1;
+      return ((current.x - rest.x) * dx + (current.y - rest.y) * dy) / len2;
+    }
+
+    function assess(p, calib, move) {
+      const torso = calib.torso;
+      const sw = calib.sw;
+      const ey = earYOf(p);
+      const sy = (p.lsh.y + p.rsh.y) / 2;
+      const shrug = ey != null && (sy - ey) / torso < calib.shrug0 - 0.12;
+      const sides = [
+        ["left", p.lsh, p.lel, p.lwr, calib.upperL, calib.foreL],
+        ["right", p.rsh, p.rel, p.rwr, calib.upperR, calib.foreR]
+      ].map(([side, sh, el, wr, upper, fore]) => {
+        const goal = armTargets(side, move, sh, upper, fore, torso);
+        const rest = armTargets(side, "open", sh, upper, fore, torso).wrist;
+        const outward = side === "left" ? sh.x - wr.x : wr.x - sh.x;
+        return {
+          below: wr.y >= sh.y - torso * 0.04,
+          narrow: Math.abs(wr.x - sh.x) <= sw * 0.35 && wr.y >= sh.y - torso * 0.04,
+          above: wr.y <= sh.y - torso * 0.15,
+          underEar: ey == null || wr.y >= ey,
+          wide: outward > sw * 0.35,
+          notWide: outward <= sw * 0.35,
+          level: Math.abs(wr.y - sh.y) <= torso * 0.3,
+          low: wr.y > sh.y + torso * 0.3,
+          straight: angleAt(sh, el, wr) >= 165,
+          elevOk: Math.abs(elevation(sh, el) - 90) <= 15,
+          progress: along(rest, goal.wrist, wr) >= 0.85
+            && Math.hypot(wr.x - goal.wrist.x, wr.y - goal.wrist.y) <= torso * 0.28
+        };
+      });
+      const all = (key) => sides.every((a) => a[key]);
+      let ok = false;
+      let cue = "";
+      if (move === "open") {
+        ok = all("narrow");
+      } else if (move === "front") {
+        ok = all("above") && all("underEar") && all("notWide") && all("progress");
+        if (!ok && !all("above")) cue = "再高一點";
+      } else {
+        ok = all("wide") && all("level") && all("straight") && all("elevOk") && all("progress") && all("underEar");
+        if (!ok) {
+          if (!all("wide")) cue = "再開一點";
+          else if (!all("level") && sides.some((a) => a.low)) cue = "再高一點";
+          else if (!all("straight")) cue = "再直一點";
+        }
+      }
+      if (shrug) {
+        ok = false;
+        cue = "肩膀";
+      }
+      return { ok, cue, shrug };
+    }
+
+    function measure(p) {
+      const midS = mid(p.lsh, p.rsh);
+      const midH = mid(p.lhip, p.rhip);
+      const torso = dist(midS, midH);
+      const ey = earYOf(p);
+      return {
+        torso,
+        sw: dist(p.lsh, p.rsh),
+        upperL: dist(p.lsh, p.lel),
+        upperR: dist(p.rsh, p.rel),
+        foreL: dist(p.lel, p.lwr),
+        foreR: dist(p.rel, p.rwr),
+        shrug0: ey == null ? 0 : (midS.y - ey) / torso,
+        midS,
+        midH
+      };
+    }
+
+    function emptySum() {
+      return { torso: 0, sw: 0, upperL: 0, upperR: 0, foreL: 0, foreR: 0, shrug0: 0 };
+    }
+    function addSum(sum, m) {
+      for (const k of Object.keys(sum)) sum[k] += m[k];
+    }
+    function avgSum(sum, n) {
+      const o = {};
+      for (const k of Object.keys(sum)) o[k] = sum[k] / n;
+      return o;
+    }
+
+    function personAt(cx, move, armT, lift) {
+      const torso = 100, sw = 78, upper = 46, fore = 40, baseY = 132;
+      const shY = baseY - lift;
+      const earY = baseY - 36;
+      const hipY = baseY + torso;
+      const lsh = { x: cx - sw / 2, y: shY, v: 1 };
+      const rsh = { x: cx + sw / 2, y: shY, v: 1 };
+      const p = {
+        lear: { x: cx - 10, y: earY, v: 1 },
+        rear: { x: cx + 10, y: earY, v: 1 },
+        lsh, rsh,
+        lhip: { x: lsh.x, y: hipY, v: 1 },
+        rhip: { x: rsh.x, y: hipY, v: 1 }
+      };
+      for (const side of ["left", "right"]) {
+        const sh = side === "left" ? lsh : rsh;
+        const open = armTargets(side, "open", sh, upper, fore, torso);
+        const goal = armTargets(side, move, sh, upper, fore, torso);
+        const el = lerp(open.elbow, goal.elbow, armT);
+        const wr = lerp(open.wrist, goal.wrist, armT);
+        if (side === "left") {
+          p.lel = { ...el, v: 1 };
+          p.lwr = { ...wr, v: 1 };
+        } else {
+          p.rel = { ...el, v: 1 };
+          p.rwr = { ...wr, v: 1 };
+        }
+      }
+      return p;
+    }
+
+    function watchPoseParams() {
+      let move = "open", arm = 0, lift = 0;
+      if (S.phase === "play") {
+        move = MOVES[S.cell].id;
+        const beat = Math.floor(S.elapsed / 1000) + 1;
+        arm = beat <= 3 ? Math.min(1, S.elapsed / 2800) : 1;
+        if (S.cell === 1 && S.elapsed < 6000) arm = Math.min(arm, 0.42);
+        if (S.cell === 2 && beat >= 4 && S.elapsed < 6000) lift = 28;
+      } else if (S.phase === "advance") {
+        move = MOVES[S.cell].id;
+        arm = 1;
+      }
+      return { move, arm, lift };
+    }
+
+    function watchPoses() {
+      const { move, arm, lift } = watchPoseParams();
+      const left = personAt(150, S.cell === 1 ? "open" : move, S.cell === 1 ? 0 : arm, S.cell === 1 ? 0 : lift);
+      const right = personAt(410, S.cell === 1 ? move : "open", S.cell === 1 ? arm : 0, S.cell === 1 ? lift : 0);
+      if (S.phase === "calibrate" || S.phase === "preview" || S.phase === "done") {
+        return [personAt(150, "open", 0, 0), personAt(410, "open", 0, 0)];
+      }
+      return [left, right];
+    }
+
+    function moverIndex() {
+      if (S.players === 1) return 0;
+      return S.cell === 1 ? 1 : 0;
+    }
+
+    function unlockAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      audioCtx.resume();
+    }
+    function tick(high) {
+      if (!audioCtx) return;
+      const t = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = high ? 880 : 494;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(high ? 0.2 : 0.13, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (high ? 0.2 : 0.09));
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start(t);
+      o.stop(t + 0.22);
+    }
+    function speak(text) {
+      if (!text || !window.speechSynthesis) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "zh-TW";
+      u.rate = 0.95;
+      const voice = speechSynthesis.getVoices().find((v) => v.lang === "zh-TW")
+        || speechSynthesis.getVoices().find((v) => v.lang.startsWith("zh"));
+      if (voice) u.voice = voice;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    }
+    function maybeSpeak(cue, now) {
+      if (!cue) {
+        S.lastSpoken = "";
+        return;
+      }
+      const aloud = S.players === 1 || cue === "肩膀";
+      if (cue !== S.lastSpoken) {
+        S.lastSpoken = cue;
+        S.lastSpeakAt = now;
+        if (aloud) speak(cue);
+        return;
+      }
+      if (aloud && now - S.lastSpeakAt > 4000) {
+        S.lastSpeakAt = now;
+        speak(cue);
+      }
+    }
+
+    function iconSvg(move) {
+      const ink = `fill="none" stroke="#1c1915" stroke-width="8" stroke-linecap="round"`;
+      const head = `<circle cx="70" cy="34" r="16" fill="#fff" stroke="#1c1915" stroke-width="8"/>`;
+      const bar = `<path d="M46 70 H94" ${ink}/>`;
+      let arms = "";
+      if (move === "open") arms = `<path d="M46 70 L38 124 M94 70 L102 124" ${ink}/>`;
+      if (move === "front") arms = `<path d="M46 72 L64 58 M94 72 L76 58" ${ink}/><circle cx="64" cy="58" r="7" fill="#1c1915"/><circle cx="76" cy="58" r="7" fill="#1c1915"/>`;
+      if (move === "side") arms = `<path d="M46 70 H12 M94 70 H128" ${ink}/><circle cx="12" cy="70" r="5" fill="#1c1915"/><circle cx="128" cy="70" r="5" fill="#1c1915"/>`;
+      return `<svg viewBox="0 0 140 140" aria-hidden="true">${head}${bar}${arms}</svg>`;
+    }
+
+    function iconsBefore(cell) {
+      if (cell === 0) return [0, 1];
+      if (cell === 1) return [2];
+      return [];
+    }
+
+    function showApp() {
+      pick.style.display = "none";
+      app.classList.add("on");
+      fit();
+    }
+    function showPick() {
+      S.phase = "pick";
+      S.held = false;
+      app.classList.remove("on");
+      pick.style.display = "grid";
+      stopCamera();
+      if (window.speechSynthesis) speechSynthesis.cancel();
+    }
+    function beginCalibrate() {
+      Object.assign(S, {
+        phase: "calibrate",
+        cell: 0,
+        step: 0,
+        elapsed: 0,
+        beat: 0,
+        frames: [],
+        cue: "",
+        held: false,
+        paused: false,
+        calMs: 0,
+        calNote: "手放下，坐穩",
+        anchor: null,
+        sums: null,
+        counts: null,
+        centers: null,
+        previewMs: 0,
+        noPersonMs: 0,
+        sampleOk: false
+      });
+      firedBeat = 0;
+      showApp();
+    }
+    function beginPreview() {
+      S.phase = "preview";
+      S.previewMs = 0;
+      S.elapsed = 0;
+      S.beat = 0;
+      S.frames = [];
+      S.cue = "";
+      S.paused = false;
+      S.lastSpoken = "";
+      firedBeat = 0;
+    }
+    function beginBeats() {
+      if (S.phase !== "preview") return;
+      S.phase = "play";
+      S.elapsed = 0;
+      S.beat = 1;
+      S.frames = [];
+      S.cue = "";
+      S.lastSpoken = "";
+      firedBeat = 1;
+      tick(false);
+    }
+    function succeed() {
+      S.phase = "advance";
+      S.advanceMs = 0;
+      S.step = S.cell + 1;
+      S.cue = "";
+      S.paused = false;
+      if (window.speechSynthesis) speechSynthesis.cancel();
+    }
+
+    function stableAgainst(poses) {
+      if (!S.anchor) {
+        S.anchor = poses.map((p) => {
+          const m = measure(p);
+          return { midS: m.midS, midH: m.midH, torso: m.torso };
+        });
+        S.sums = poses.map(() => emptySum());
+        S.counts = poses.map(() => 0);
+        return true;
+      }
+      for (let i = 0; i < poses.length; i++) {
+        const m = measure(poses[i]);
+        const a = S.anchor[i];
+        if (!a || m.torso < 20) return false;
+        if (dist(m.midS, a.midS) > a.torso * 0.08) return false;
+        if (dist(m.midH, a.midH) > a.torso * 0.08) return false;
+        if (Math.abs(m.torso - a.torso) > a.torso * 0.15) return false;
+      }
+      return true;
+    }
+    function resetCal(note) {
+      const had = S.calMs > 120;
+      S.calMs = 0;
+      S.anchor = null;
+      S.sums = null;
+      S.counts = null;
+      if (had) S.calNote = note;
+    }
+    function absorb(poses) {
+      poses.forEach((p, i) => {
+        addSum(S.sums[i], measure(p));
+        S.counts[i] += 1;
+      });
+    }
+    function finishCal() {
+      S.calib = S.sums.map((sum, i) => avgSum(sum, S.counts[i]));
+      S.centers = S.poses.map((p) => mid(p.lsh, p.rsh));
+      beginPreview();
+    }
+
+    function visiblePose(p) {
+      const body = ["lsh", "rsh", "lel", "rel", "lwr", "rwr", "lhip", "rhip"];
+      if (!body.every((k) => p[k] && p[k].v >= 0.5)) return false;
+      return p.lear.v >= 0.5 || p.rear.v >= 0.5;
+    }
+    function overlapped(a, b) {
+      const sw = (dist(a.lsh, a.rsh) + dist(b.lsh, b.rsh)) / 2;
+      return dist(mid(a.lsh, a.rsh), mid(b.lsh, b.rsh)) < sw * 0.9;
+    }
+    function assignPoses(poses) {
+      if (S.players === 1) {
+        poses.sort((a, b) => Math.abs(mid(a.lsh, a.rsh).x - view.w / 2) - Math.abs(mid(b.lsh, b.rsh).x - view.w / 2));
+        return [poses[0]];
+      }
+      if (!S.centers) {
+        return poses.slice().sort((a, b) => mid(a.lsh, a.rsh).x - mid(b.lsh, b.rsh).x).slice(0, 2);
+      }
+      const used = new Set();
+      const out = [];
+      for (const c of S.centers) {
+        let best = -1, bestD = Infinity;
+        poses.forEach((p, i) => {
+          if (used.has(i)) return;
+          const d = dist(mid(p.lsh, p.rsh), c);
+          if (d < bestD) { bestD = d; best = i; }
+        });
+        if (best < 0 || bestD > view.w * 0.45) return null;
+        used.add(best);
+        out.push(poses[best]);
+      }
+      return out;
+    }
+
+    function judge(poses, now) {
+      if (S.phase !== "play" || S.held || S.paused || S.beat < 4) return;
+      const i = moverIndex();
+      const result = assess(poses[i], S.calib[i], MOVES[S.cell].id);
+      S.frames.push({ ok: result.ok, shrug: result.shrug });
+      if (S.frames.length > 8) S.frames.shift();
+      S.cue = result.shrug || S.frames.filter((f) => f.shrug).length >= 6 ? "肩膀" : (result.ok ? "" : result.cue);
+      maybeSpeak(S.cue, now);
+      const oks = S.frames.filter((f) => f.ok).length;
+      if (S.frames.length >= 8 && oks >= 6) succeed();
+    }
+
+    function update(dt, now) {
+      if (S.held) return;
+      if (S.phase === "calibrate") {
+        if (!S.sampleOk) {
+          S.noPersonMs += dt;
+          if (S.calMs > 0) resetCal("再坐穩");
+          else if (S.noPersonMs > 700) S.calNote = "再坐穩";
+        } else if (!stableAgainst(S.poses)) {
+          resetCal("再坐穩");
+          S.noPersonMs = 0;
+        } else {
+          S.noPersonMs = 0;
+          if (S.calMs === 0) S.calNote = "手放下，坐穩";
+          absorb(S.poses);
+          S.calMs += dt;
+          if (S.calMs >= 2000) finishCal();
+        }
+      } else if (S.phase === "preview") {
+        if (S.mode === "watch" && !location.search.includes("manual")) {
+          S.previewMs += dt;
+          if (S.previewMs > 3200) beginBeats();
+        }
+      } else if (S.phase === "play") {
+        if (S.mode === "play" && now - S.lastGood > 500) S.paused = true;
+        if (S.mode === "play" && now - S.lastGood <= 500) S.paused = false;
+        if (!S.paused) {
+          S.elapsed += dt;
+          const beat = Math.floor(S.elapsed / 1000) + 1;
+          while (firedBeat < beat) {
+            firedBeat += 1;
+            S.beat = firedBeat;
+            tick(firedBeat >= 4);
+          }
+          S.beat = beat;
+        }
+      } else if (S.phase === "advance") {
+        S.advanceMs += dt;
+        if (S.advanceMs > 800) {
+          S.cell += 1;
+          if (S.cell >= 3) S.phase = "done";
+          else beginPreview();
+        }
+      }
+    }
+
+    function sceneMap(p) {
+      const sceneW = 560, sceneH = 360;
+      const s = Math.min(S.cw / sceneW, S.ch / sceneH) * 0.92;
+      const ox = (S.cw - sceneW * s) / 2;
+      const oy = (S.ch - sceneH * s) / 2 + 8;
+      const o = {};
+      for (const k of KEYS) o[k] = { x: ox + p[k].x * s, y: oy + p[k].y * s, v: 1 };
+      o._s = s;
+      return o;
+    }
+    function videoMap(p) {
+      const vw = view.w, vh = view.h;
+      const s = Math.min(S.cw / vw, S.ch / vh);
+      const dw = vw * s, dh = vh * s;
+      const ox = (S.cw - dw) / 2, oy = (S.ch - dh) / 2;
+      const o = {};
+      for (const k of KEYS) o[k] = { x: ox + p[k].x * s, y: oy + p[k].y * s, v: p[k].v };
+      return o;
+    }
+    function strokeArm(sh, el, wr, color, width) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(sh.x, sh.y);
+      ctx.lineTo(el.x, el.y);
+      ctx.lineTo(wr.x, wr.y);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(wr.x, wr.y, width * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    function drawGhost(mapped, calib, move) {
+      const torso = calib.torso;
+      const scale = S.mode === "watch" ? mapped._s : (videoMap(S.poses[0] || mapped)._s || 1);
+      for (const [side, sh, upper, fore] of [
+        ["left", mapped.lsh, calib.upperL, calib.foreL],
+        ["right", mapped.rsh, calib.upperR, calib.foreR]
+      ]) {
+        const src = S.mode === "watch" ? unmap(mapped, sh) : unvideo(sh);
+        const g = armTargets(side, move, src, upper, fore, torso);
+        const el = S.mode === "watch" ? remap(mapped, g.elbow) : revideo(g.elbow);
+        const wr = S.mode === "watch" ? remap(mapped, g.wrist) : revideo(g.wrist);
+        strokeArm(sh, el, wr, "#5f8f88", 10);
+      }
+      void scale;
+    }
+    function unmap(mapped, pt) {
+      const sceneW = 560, sceneH = 360;
+      const s = mapped._s;
+      const ox = (S.cw - sceneW * s) / 2;
+      const oy = (S.ch - sceneH * s) / 2 + 8;
+      return { x: (pt.x - ox) / s, y: (pt.y - oy) / s };
+    }
+    function remap(mapped, pt) {
+      const sceneW = 560, sceneH = 360;
+      const s = mapped._s;
+      const ox = (S.cw - sceneW * s) / 2;
+      const oy = (S.ch - sceneH * s) / 2 + 8;
+      return { x: ox + pt.x * s, y: oy + pt.y * s };
+    }
+    function unvideo(pt) {
+      const s = Math.min(S.cw / view.w, S.ch / view.h);
+      const ox = (S.cw - view.w * s) / 2, oy = (S.ch - view.h * s) / 2;
+      return { x: (pt.x - ox) / s, y: (pt.y - oy) / s };
+    }
+    function revideo(pt) {
+      const s = Math.min(S.cw / view.w, S.ch / view.h);
+      const ox = (S.cw - view.w * s) / 2, oy = (S.ch - view.h * s) / 2;
+      return { x: ox + pt.x * s, y: oy + pt.y * s };
+    }
+
+    function drawPerson(mapped, opts) {
+      const s = mapped._s || 1;
+      const head = {
+        x: (mapped.lear.x + mapped.rear.x) / 2,
+        y: (mapped.lear.y + mapped.rear.y) / 2
+      };
+      ctx.lineCap = "round";
+      ctx.strokeStyle = opts.dim ? "rgba(28,25,21,.35)" : "#1c1915";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(head.x, head.y + 18 * s);
+      ctx.lineTo(mid(mapped.lsh, mapped.rsh).x, mid(mapped.lsh, mapped.rsh).y);
+      ctx.lineTo(mid(mapped.lhip, mapped.rhip).x, mid(mapped.lhip, mapped.rhip).y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mapped.lsh.x, mapped.lsh.y);
+      ctx.lineTo(mapped.rsh.x, mapped.rsh.y);
+      ctx.stroke();
+      strokeArm(mapped.lsh, mapped.lel, mapped.lwr, ctx.strokeStyle, 8);
+      strokeArm(mapped.rsh, mapped.rel, mapped.rwr, ctx.strokeStyle, 8);
+      const hip = mid(mapped.lhip, mapped.rhip);
+      ctx.beginPath();
+      ctx.moveTo(hip.x - 36 * s, hip.y + 10 * s);
+      ctx.lineTo(hip.x + 36 * s, hip.y + 10 * s);
+      ctx.stroke();
+      ctx.fillStyle = opts.dim ? "rgba(251,248,242,.7)" : "#fbf8f2";
+      ctx.strokeStyle = opts.dim ? "rgba(28,25,21,.35)" : "#1c1915";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, 20 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      if (opts.ring) {
+        const hip = mid(mapped.lhip, mapped.rhip);
+        ctx.strokeStyle = "#0f5c56";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(hip.x, hip.y + 22 * s, 46 * s, 12 * s, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, S.cw, S.ch);
+      const showGhost = (S.phase === "play" && S.beat >= 4 && !S.paused) || S.phase === "advance";
+      if (S.mode === "watch") {
+        ctx.fillStyle = "#e4d9c8";
+        ctx.fillRect(0, 0, S.cw, S.ch);
+        if (S.phase === "preview") return;
+        const poses = (S.poses && S.poses.length) ? S.poses : watchPoses();
+        const mapped = poses.map(sceneMap);
+        const mover = moverIndex();
+        mapped.forEach((m, i) => {
+          const dim = S.players === 2 && S.phase === "play" && i !== mover;
+          drawPerson(m, { dim, ring: S.phase === "play" && i === mover });
+          if (showGhost && i === mover && S.calib[i]) drawGhost(m, S.calib[i], MOVES[S.cell].id);
+        });
+      } else if (cam.readyState >= 2) {
+        const s = Math.min(S.cw / view.w, S.ch / view.h);
+        const dw = view.w * s, dh = view.h * s;
+        const ox = (S.cw - dw) / 2, oy = (S.ch - dh) / 2;
+        ctx.fillStyle = "#241f1b";
+        ctx.fillRect(0, 0, S.cw, S.ch);
+        ctx.save();
+        ctx.translate(ox + dw, oy);
+        ctx.scale(-1, 1);
+        ctx.drawImage(cam, 0, 0, dw, dh);
+        ctx.restore();
+        if (S.poses && S.poses.length && S.calib.length) {
+          const mover = moverIndex();
+          S.poses.forEach((p, i) => {
+            if (!p) return;
+            const m = videoMap(p);
+            if (S.phase === "play" && i === mover) {
+              const hip = mid(m.lhip, m.rhip);
+              ctx.strokeStyle = "#0f5c56";
+              ctx.lineWidth = 4;
+              ctx.beginPath();
+              ctx.ellipse(hip.x, hip.y + 16, 36, 12, 0, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            if (showGhost && i === mover) {
+              drawGhost(m, S.calib[i], MOVES[S.cell].id);
+              strokeArm(m.lsh, m.lel, m.lwr, "#1c1915", 10);
+              strokeArm(m.rsh, m.rel, m.rwr, "#1c1915", 10);
+            }
+          });
+        }
+      }
+    }
+
+    function render() {
+      const move = MOVES[S.cell] || MOVES[0];
+      stage.classList.toggle("camera", S.mode === "play");
+      crateEl.style.left = `calc(${S.step} * 25% + 12.5%)`;
+      patternEl.textContent = "";
+      iconsEl.innerHTML = "";
+      roleEl.textContent = "";
+      cueEl.textContent = "";
+      cueEl.classList.remove("bad");
+      subEl.textContent = "";
+      statusEl.textContent = "";
+      beatEl.textContent = "";
+      moveNameEl.textContent = "";
+      effortEl.textContent = "";
+      goBtn.style.display = "none";
+      restEl.classList.toggle("on", S.held);
+      endEl.classList.toggle("on", S.phase === "done" && !S.held);
+      if (S.held) return;
+
+      if (S.players === 2 && (S.phase === "preview" || S.phase === "play" || S.phase === "advance")) {
+        roleEl.textContent = S.cell === 1 ? "右邊做，左邊報" : "左邊做，右邊報";
+      }
+      if (S.phase === "calibrate") {
+        statusEl.textContent = S.calNote;
+        subEl.textContent = "頭到腰都要入鏡";
+      } else if (S.phase === "loading") {
+        statusEl.textContent = S.calNote;
+      } else if (S.phase === "preview") {
+        if (S.cell === 0) patternEl.textContent = "身邊，前面，兩側。";
+        const ids = iconsBefore(S.cell);
+        iconsEl.innerHTML = ids.map((id) => (
+          `<figure>${iconSvg(MOVES[id].id)}<figcaption>${MOVES[id].word}</figcaption></figure>`
+        )).join("");
+        if (S.cell === 1) statusEl.textContent = "再下一格";
+        if (S.cell === 2) statusEl.textContent = "最後一格";
+        goBtn.style.display = "inline-block";
+      } else if (S.phase === "play") {
+        beatEl.textContent = S.paused ? "" : String(S.beat);
+        if (S.paused) {
+          cueEl.textContent = "一起";
+          cueEl.classList.add("bad");
+        } else if (S.beat >= 4) {
+          if (S.cue) {
+            cueEl.textContent = S.cue;
+            if (S.cue === "肩膀") cueEl.classList.add("bad");
+            if (S.players === 2 && S.cue !== "肩膀") subEl.textContent = "由旁邊的人說";
+          }
+          moveNameEl.textContent = move.name;
+          effortEl.textContent = move.effort;
+        }
+      } else if (S.phase === "advance") {
+        moveNameEl.textContent = move.name;
+        effortEl.textContent = move.effort;
+      }
+    }
+
+    async function detectCamera(now) {
+      if (!landmarker || cam.readyState < 2) {
+        S.sampleOk = false;
+        return;
+      }
+      if (now - lastDetect < 66) return;
+      lastDetect = now;
+      detectStamp = now;
+      let result;
+      try {
+        result = landmarker.detectForVideo(cam, now);
+      } catch (err) {
+        S.sampleOk = false;
+        return;
+      }
+      view.w = cam.videoWidth || 640;
+      view.h = cam.videoHeight || 480;
+      let poses = (result.landmarks || []).map((lms) => {
+        const p = {};
+        for (const [k, i] of Object.entries(IDX)) {
+          const lm = lms[i];
+          p[k] = {
+            x: (1 - lm.x) * view.w,
+            y: lm.y * view.h,
+            v: lm.visibility ?? lm.presence ?? 0
+          };
+        }
+        return p;
+      }).filter(visiblePose);
+      if (S.players === 2 && poses.length >= 2 && overlapped(poses[0], poses[1])) {
+        S.sampleOk = false;
+        return;
+      }
+      const assigned = assignPoses(poses);
+      if (!assigned || assigned.filter(Boolean).length < S.players) {
+        S.sampleOk = false;
+        return;
+      }
+      S.sampleOk = true;
+      S.poses = assigned;
+      S.lastGood = now;
+      if (S.centers && S.phase !== "calibrate") {
+        S.centers = assigned.map((p) => mid(p.lsh, p.rsh));
+      }
+      if (S.phase === "play") judge(assigned, now);
+    }
+
+    function sampleWatch() {
+      S.poses = watchPoses();
+      S.sampleOk = true;
+      S.lastGood = performance.now();
+      if (S.phase === "play") judge(S.poses, performance.now());
+    }
+
+    let watchAcc = 0;
+    function loop(now) {
+      const dt = Math.min(80, now - (loop.prev || now));
+      loop.prev = now;
+      if (S.phase !== "pick") {
+        if (S.mode === "watch") {
+          watchAcc += dt;
+          if (watchAcc >= 66) {
+            watchAcc = 0;
+            sampleWatch();
+          }
+        } else {
+          detectCamera(now);
+        }
+        update(dt, now);
+        if (S.mode === "watch" && (S.phase === "play" || S.phase === "advance" || S.phase === "done" || S.phase === "preview" || S.phase === "calibrate")) {
+          S.poses = watchPoses();
+        }
+        fit();
+        draw();
+        render();
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function fit() {
+      const r = stage.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = Math.max(2, r.width);
+      const h = Math.max(2, r.height);
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      S.cw = w;
+      S.ch = h;
+    }
+
+    function stopCamera() {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+      cam.srcObject = null;
+      if (landmarker) {
+        landmarker.close();
+        landmarker = null;
+      }
+    }
+
+    async function startPlay(players) {
+      unlockAudio();
+      S.mode = "play";
+      S.players = players;
+      S.phase = "loading";
+      S.calNote = "正在準備攝影機";
+      S.held = false;
+      showApp();
+      render();
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+          audio: false
+        });
+        cam.srcObject = stream;
+        await cam.play();
+        S.calNote = "正在準備骨架";
+        render();
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21");
+        const files = await vision.FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm"
+        );
+        const model = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+        const opts = (delegate) => ({
+          baseOptions: { modelAssetPath: model, delegate },
+          runningMode: "VIDEO",
+          numPoses: players
+        });
+        try {
+          landmarker = await vision.PoseLandmarker.createFromOptions(files, opts("GPU"));
+        } catch (err) {
+          landmarker = await vision.PoseLandmarker.createFromOptions(files, opts("CPU"));
+        }
+        S.lastGood = performance.now();
+        beginCalibrate();
+      } catch (err) {
+        S.phase = "loading";
+        S.calNote = "攝影機或骨架沒有準備好";
+        statusEl.textContent = S.calNote;
+        stopCamera();
+      }
+    }
+
+    document.getElementById("watch").onclick = () => {
+      unlockAudio();
+      speechSynthesis.getVoices();
+      S.mode = "watch";
+      S.players = 2;
+      beginCalibrate();
+    };
+    document.getElementById("solo").onclick = () => startPlay(1);
+    document.getElementById("duo").onclick = () => startPlay(2);
+    goBtn.onclick = () => { unlockAudio(); beginBeats(); };
+    document.getElementById("stop").onclick = () => {
+      if (S.phase === "pick") return;
+      S.held = true;
+      if (window.speechSynthesis) speechSynthesis.cancel();
+      render();
+    };
+    document.getElementById("resume").onclick = () => { S.held = false; S.lastGood = performance.now(); };
+    document.getElementById("quit").onclick = () => showPick();
+    document.getElementById("again").onclick = () => {
+      unlockAudio();
+      S.mode = "watch";
+      S.players = 2;
+      beginCalibrate();
+    };
+    document.getElementById("playSolo").onclick = () => startPlay(1);
+    window.addEventListener("resize", fit);
+    if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+
+    function runTests() {
+      const list = document.getElementById("tests");
+      list.classList.add("on");
+      const open = personAt(200, "open", 0, 0);
+      const calib = measure(open);
+      const cases = [
+        ["打開通過", assess(open, calib, "open"), (r) => r.ok && !r.shrug],
+        ["向前通過", assess(personAt(200, "front", 1, 0), calib, "front"), (r) => r.ok],
+        ["向前太低", assess(personAt(200, "front", 0.42, 0), calib, "front"), (r) => !r.ok && r.cue === "再高一點"],
+        ["向側通過", assess(personAt(200, "side", 1, 0), calib, "side"), (r) => r.ok],
+        ["向側不夠開", assess(personAt(200, "side", 0.25, 0), calib, "side"), (r) => !r.ok && r.cue === "再開一點"],
+        ["聳肩", assess(personAt(200, "side", 1, 28), calib, "side"), (r) => !r.ok && r.shrug && r.cue === "肩膀"]
+      ];
+      const bent = personAt(200, "side", 1, 0);
+      bent.lwr = { x: bent.lel.x, y: bent.lel.y + 18, v: 1 };
+      bent.rwr = { x: bent.rel.x, y: bent.rel.y + 18, v: 1 };
+      cases.push(["手肘彎", assess(bent, calib, "side"), (r) => !r.ok && r.cue === "再直一點"]);
+      let failed = 0;
+      for (const [name, result, pred] of cases) {
+        const pass = pred(result);
+        if (!pass) failed += 1;
+        const li = document.createElement("li");
+        li.className = pass ? "ok" : "fail";
+        li.textContent = `${pass ? "過" : "失敗"} ${name} ${JSON.stringify(result)}`;
+        list.appendChild(li);
+      }
+      document.title = failed ? `測試失敗 ${failed}` : "測試通過";
+    }
+
+    if (new URLSearchParams(location.search).has("test")) runTests();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

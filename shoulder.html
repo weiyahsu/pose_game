@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>動肩膀：遊戲文件</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #e7e1d6;
+      --paper: #fbf8f2;
+      --ink: #1c1915;
+      --muted: #5e574c;
+      --line: #e4d9c8;
+      --teal: #0f5c56;
+      --teal-soft: #e5f2f0;
+      --warn: #8d2f1c;
+      --warn-soft: #fde8e1;
+      --good: #1d6b3a;
+      --good-soft: #e5f3e8;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+    }
+    :focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+    main { max-width: 880px; margin: 0 auto; padding: 28px 20px 72px; }
+    header.hero, section {
+      background: var(--paper);
+      border-radius: 22px;
+      padding: 28px 28px 22px;
+      margin-bottom: 16px;
+    }
+    header.hero { border-radius: 28px; padding: 36px 36px 28px; }
+    .kicker {
+      display: inline-block;
+      margin: 0 0 10px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    h1 { margin: 0 0 12px; font-size: 36px; line-height: 1.25; }
+    h2 { margin: 0 0 8px; font-size: 22px; }
+    h3 { margin: 18px 0 6px; font-size: 17px; }
+    .lede { margin: 0; max-width: 40em; }
+    .meta, .toc { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; }
+    .meta { color: var(--muted); font-size: 13px; }
+    .toc a { color: var(--teal); font-weight: 700; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .sub { margin: 0 0 16px; color: var(--muted); }
+    p { margin: 0 0 12px; }
+    ol.flow, .spec-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    ol.flow li, .spec-list article {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #f6f1e8;
+    }
+    .spec-list article { grid-template-columns: 1fr; }
+    .n {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--ink); color: #fff;
+      font-size: 14px; font-weight: 700;
+    }
+    ol.flow strong { display: block; }
+    ol.flow span, .hint { color: var(--muted); font-size: 15px; }
+    .spec-list h3 { margin: 0 0 4px; }
+    .spec-list p { margin: 0; font-size: 15px; }
+    .effort { color: var(--teal); font-weight: 700; margin-top: 4px; }
+    .figure {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 18px;
+      align-items: center;
+      margin: 8px 0 4px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .figure svg { width: 100%; height: auto; }
+    .figure p { margin: 0 0 8px; }
+    .ghost-line { stroke: #5f8f88; stroke-width: 10; stroke-linecap: round; }
+    .live-line { stroke: #1c1915; stroke-width: 10; stroke-linecap: round; }
+    .ghost-dot { fill: #5f8f88; }
+    .live-dot { fill: #1c1915; }
+    .callout {
+      margin-top: 14px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+    .callout p { margin: 0; }
+    .pipe { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; padding: 0; list-style: none; }
+    .pipe li {
+      background: var(--teal-soft);
+      color: var(--teal);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+    code { font-size: 0.92em; }
+    pre {
+      margin: 8px 0 0;
+      padding: 14px 16px;
+      overflow: auto;
+      border-radius: 14px;
+      background: #221e1a;
+      color: #f6f1e8;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    ul.plain { margin: 8px 0 0; padding-left: 1.2em; }
+    ul.plain li { margin: 4px 0; }
+    footer { color: var(--muted); font-size: 13px; padding: 4px 8px 0; }
+    @media (max-width: 720px) {
+      header.hero, section { padding: 20px 16px; }
+      h1 { font-size: 28px; }
+      .figure { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="kicker">遊戲文件 1.1</p>
+      <h1>動肩膀</h1>
+      <p class="lede">坐在電腦前，先看懂這一場的規律，記住接下來兩個動作。拍子前三拍，畫面上沒有名稱，也沒有虛影，人要靠剛剛記住的去做。第四拍起虛影才疊到身上，對的是手臂的幅度和角度，拍子繼續走，直到對上。肩膀若靠近耳朵，這一拍不算。可以一個人玩，也可以兩個人一格一格輪流做、輪流報。</p>
+      <div class="meta">
+        <span>對象：老人，也可和小孩一起</span>
+        <span>形式：瀏覽器，一顆攝影機</span>
+        <span>一場：三步，約一分多鐘</span>
+      </div>
+      <nav class="toc" aria-label="文件目錄">
+        <a href="#problem">要解決的事</a>
+        <a href="#round">一場怎麼走</a>
+        <a href="#screen">畫面上有什麼</a>
+        <a href="#library">動作庫</a>
+        <a href="#judge">怎麼算過關</a>
+        <a href="#tech">使用技術</a>
+        <a href="#scope">範圍</a>
+      </nav>
+    </header>
+
+    <section id="problem">
+      <h2>要解決的事</h2>
+      <p>把手向上、向側或向前送時，肩膀常先往耳朵抬。脖子在代勞，該動的手臂沒有真正送出去。人在畫面裡看不到自己的肩膀，旁邊的人若不知道要講哪一句，這個動作就會一直錯下去。</p>
+      <p>這個遊戲把三件事放在同一輪裡。益智負責記住下一個動作，所以一場的動作要服同一句規律，不排成亂序。拍子負責什麼時候做到。虛影在第四拍才出現，負責還差多少幅度和角度。發力那一句只說明力從哪裡來，讓人理解不要用脖子去湊高度。</p>
+    </section>
+
+    <section id="round">
+      <h2>一場怎麼走</h2>
+      <p class="sub">示範一場把箱子從起點推過三格。規律只有一句：「身邊，前面，兩側。」三格固定是姿勢打開、向前平舉、向側平舉。手一次比一次離開身體，知道這句就推得出下一格。拍子大約一秒一拍，不快。前三拍只有敲擊。第四拍之後拍子繼續走，直到這一格對上，不回到第一拍，也不計失敗次數。</p>
+      <ol class="flow">
+        <li>
+          <span class="n">1</span>
+          <div><strong>選人數，坐穩</strong><span>鏡頭要看到頭到腰，人離鏡頭大約一臂，椅子不要扶手。單人坐在畫面中間。雙人並排，中間留約一個肩膀的空隙。然後允許攝影機。</span></div>
+        </li>
+        <li>
+          <span class="n">2</span>
+          <div><strong>手放下，校正兩秒</strong><span>系統記下每個人的軀幹長度和肩膀原位。這兩秒肩膀和髖要穩、點要看得到。不穩就作廢，畫面寫「再坐穩」，再記兩秒。後面的虛影按這個人的身體比例來畫。</span></div>
+        </li>
+        <li>
+          <span class="n">3</span>
+          <div><strong>先看規律和兩個圖示</strong><span>第一格用大字寫「身邊，前面，兩側。」只亮這一格和下一格的火柴人。看完由玩家按「開始」，不倒數。兩張一起收起。</span></div>
+        </li>
+        <li>
+          <span class="n">4</span>
+          <div><strong>收起，進入拍子</strong><span>按下之後，規律那句、圖示、名稱、發力都收起。做的人靠剛剛記住的動作。雙人時，畫面左邊的人先做，右邊的人先報。</span></div>
+        </li>
+        <li>
+          <span class="n">5</span>
+          <div><strong>前三拍，只做這一個</strong><span>每拍一聲短敲。畫面上不提示是哪一個動作，也沒有虛影。雙人由這一格不做事的人把動作報出來。</span></div>
+        </li>
+        <li>
+          <span class="n">6</span>
+          <div><strong>第四拍起，直到對上</strong><span>第四拍用另一聲，之後都用這一聲。虛影、名稱和發力這時才出現。每一拍都看一次。對上了，箱子前進一格。還沒有，空隙留在畫面上，拍子不重來。現場的人決定何時停。</span></div>
+        </li>
+        <li>
+          <span class="n">7</span>
+          <div><strong>換下一格</strong><span>即將要做的那一格不再亮。只亮再下一格的一張新圖示，看完按「開始」就收起。最後一格沒有新圖示。規律那句不再重寫。雙人交換：這一格做的人，下一格改報。</span></div>
+        </li>
+        <li>
+          <span class="n">8</span>
+          <div><strong>終點</strong><span>三格都對上，箱子停在終點。單人自己走完。雙人第 1、3 格是畫面左邊的人，第 2 格是右邊的人。</span></div>
+        </li>
+      </ol>
+      <h3>單人</h3>
+      <p>自己記剛剛亮出的順序。前三拍不提示。第四拍起還沒對上，畫面和聲音講「再高一點」「再開一點」或「再直一點」。聳肩時改講「肩膀」。</p>
+      <h3>雙人</h3>
+      <p>這一格只有一個人做，另一個人只報，下一格對調。虛影只疊在做的人身上。報的人在前三拍說出動作，第四拍起改說還差的方向，例如「再高一點」。系統仍會在聳肩時念「肩膀」。少了一個人入鏡，或兩人肩膀疊在一起，大字寫「一起」，拍子暫停，箱子不動。人回到畫面，從暫停的這一拍繼續。</p>
+    </section>
+
+    <section id="screen">
+      <h2>畫面上有什麼</h2>
+      <div class="figure">
+        <svg viewBox="0 0 200 168" role="img" aria-label="淺色虛影比深色手臂更高，中間的高度差就是還要再抬的幅度">
+          <line class="ghost-line" x1="78" y1="118" x2="78" y2="36"></line>
+          <circle class="ghost-dot" cx="78" cy="36" r="7"></circle>
+          <line class="live-line" x1="122" y1="118" x2="122" y2="78"></line>
+          <circle class="live-dot" cx="122" cy="78" r="7"></circle>
+          <circle class="live-dot" cx="100" cy="124" r="6"></circle>
+          <text x="64" y="24" fill="#5f8f88" font-size="14" font-family="Noto Sans TC, sans-serif">虛影</text>
+          <text x="108" y="70" fill="#1c1915" font-size="14" font-family="Noto Sans TC, sans-serif">現在</text>
+        </svg>
+        <div>
+          <p>淺色是第四拍起才疊上的目標，深色是現在的手臂。兩條之間的高度差，就是還要再往上的幅度。前三拍這兩條都不畫。</p>
+          <p>虛影用校正時凍住的軀幹長度，把目標角度換算成這個人的手腕位置。人高矮不同，虛影的長度跟著變。鏡頭畫面當底，左右鏡像，玩家的左邊在畫面左邊。虛影疊在做動作的人身上。</p>
+        </div>
+      </div>
+      <p>圖示是白底火柴人，只畫頭、肩和兩條手臂，和虛影同一套線。姿勢打開手在身邊，向前平舉手在前面肩高，向側平舉手在兩側肩高。畫面下方是一條三格軌道，箱子停在還沒過的那一格，對上才往前。</p>
+      <h3>字怎麼出現</h3>
+      <div class="spec-list">
+        <article>
+          <h3>動作名稱</h3>
+          <p>前三拍不出現。第四拍起才寫，例如「向前平舉」，直到這一格過了。系統不念名稱。</p>
+        </article>
+        <article>
+          <h3>發力</h3>
+          <p>和名稱同時出現，例如「肩膀前側把上臂抬起，脖子不要幫忙」。這句幫助人理解出力的位置，不拿來計分，也不念出來。</p>
+        </article>
+        <article>
+          <h3>還差的方向</h3>
+          <p>第四拍起還沒到虛影，就寫空隙的方向。手不夠高是「再高一點」，手臂不夠開是「再開一點」，手肘還彎著是「再直一點」。單人由系統念。雙人由報的人說。</p>
+        </article>
+        <article>
+          <h3>肩膀</h3>
+          <p>手臂好像到了，耳朵到肩膀的距離卻變短。大字改成「肩膀」。力換成脖子，幅度不算數，箱子留在這一格。</p>
+        </article>
+      </div>
+      <p>同一個瞬間又聳肩、又還沒到位，先寫「肩膀」。</p>
+    </section>
+
+    <section id="library">
+      <h2>上半身動作庫</h2>
+      <p class="sub">十個都坐著做，正面鏡頭看得到，而且可以在第四拍停住。名稱沿用台大醫院上肢阻力運動、成功大學附設醫院坐姿運動，以及國民健康署的坐姿操。進同一場的動作要服一句說得完的規律。示範這句是「身邊，前面，兩側。」其餘七個用同一套拍子、虛影和聳肩規則。路線加長時仍然要能用一句話說完，例如同一個做兩次、一來一回、先屈再伸。</p>
+      <div class="spec-list">
+        <article>
+          <h3>1. 姿勢打開</h3>
+          <p>坐直，胸口打開，手臂放鬆垂下，肩膀沉下來。來源是台大的姿勢矯正。示範路線的第一格。</p>
+          <p class="effort">發力：肩胛骨往後收，脖子放鬆。</p>
+          <p class="hint">鏡頭看手臂留在身體旁邊，耳朵到肩膀的距離沒有變短。</p>
+        </article>
+        <article>
+          <h3>2. 向前平舉</h3>
+          <p>手肘打直，兩手抬到肩膀高度就停，大拇指朝上，不往頭頂繼續。來源是台大的肩關節上舉，取到手肩同高，以及成大的手平舉。示範路線的第二格。</p>
+          <p class="effort">發力：肩膀前側把上臂抬起，脖子不要幫忙。</p>
+          <p class="hint">鏡頭看兩側手腕高過肩膀，但沒有高到耳朵。</p>
+        </article>
+        <article>
+          <h3>3. 向側平舉</h3>
+          <p>手從身體兩側抬到肩膀高度，身體不要歪。來源是台大的肩關節側舉、成大的向兩側平舉。示範路線的第三格。</p>
+          <p class="effort">發力：肩膀外側把上臂抬起。</p>
+          <p class="hint">鏡頭看手腕在肩膀外側，高度接近肩膀。</p>
+        </article>
+        <article>
+          <h3>4. 手向前送</h3>
+          <p>手肘先打直，停在肩高，再往前送一點，身體和頭留在原位。來源是台大的手向前摸。</p>
+          <p class="effort">發力：肩胛骨往前送，身體不要跟著傾。</p>
+          <p class="hint">和向前平舉差在往前，而不是再抬高。深度最不穩，庫裡有，示範路線先不抽。</p>
+        </article>
+        <article>
+          <h3>5. 彎手肘</h3>
+          <p>上臂貼著身體，手肘彎起來，手來到肩膀前面，手腕打直。來源是台大的手肘彎曲，以及國健署動動健康班的二頭肌彎舉。</p>
+          <p class="effort">發力：上手臂前面把手彎起來，上臂貼住身體。</p>
+          <p class="hint">鏡頭看手肘還在腰側，手腕升到肩膀附近。</p>
+        </article>
+        <article>
+          <h3>6. 伸手肘</h3>
+          <p>手肘先彎著，再把前臂伸直，上臂不要跟著抬向耳朵。痛就只伸到肩高。來源是台大的手肘伸直。</p>
+          <p class="effort">發力：上手臂後面把前臂伸直。</p>
+          <p class="hint">鏡頭看手腕離開肩膀，手肘角度打開。</p>
+        </article>
+        <article>
+          <h3>7. 擴胸</h3>
+          <p>手肘彎約一直角，前臂向外打開，胸口展開，肋骨不要往前挺。來源是台大的擴胸，以及成大的合掌再向外平舉。</p>
+          <p class="effort">發力：肩胛骨把胸口打開。</p>
+          <p class="hint">鏡頭看手肘打開，前臂在肩膀高度附近，手腕沒有舉過耳朵。</p>
+        </article>
+        <article>
+          <h3>8. 往後拉</h3>
+          <p>坐直，手肘往後拉並停住。來源是台大的划船。</p>
+          <p class="effort">發力：肩胛骨夾住，不是只把手肘往後甩。</p>
+          <p class="hint">肩胛骨在背後。正面鏡頭看手肘往後，肩膀沒有跟著上去。</p>
+        </article>
+        <article>
+          <h3>9. 斜上拔劍</h3>
+          <p>一手從另一側的大腿旁，拉到斜上方，大約肩高就停。兩人先做同一側。身體不轉、不側倒。來源是台大的對角線拔劍，以及國健署的拔劍。</p>
+          <p class="effort">發力：肩膀把上臂帶向斜上。</p>
+          <p class="hint">鏡頭一次只認畫面指定的那一側。</p>
+        </article>
+        <article>
+          <h3>10. 雙手摸頭</h3>
+          <p>雙手摸到頭的兩側，手肘打開。這是梳洗會用到的動作。來源是國健署的雙手梳梳頭。</p>
+          <p class="effort">發力：肩膀把上臂抬高，肩膀本身留在原位。</p>
+          <p class="hint">手腕可以靠近耳朵的高度，肩膀仍留在校正時的位置。</p>
+        </article>
+      </div>
+      <h3>先不放進庫</h3>
+      <ul class="plain">
+        <li>扶牆伏地挺身。要站到牆邊，人會離開現在的坐姿同框。</li>
+        <li>雙手畫圈。它是連續畫圓，對不上第四拍要停在一個角度。</li>
+        <li>左右彎腰、轉體。主體是軀幹。骨質疏鬆時，快速旋轉和彎到底要避開。</li>
+        <li>在椅子上把身體撐起來、手腕彎曲、握力球。動作太小，或肩膀負擔集中。</li>
+      </ul>
+      <div class="callout">
+        <p>坐在椅面前緣，慢慢做，自然呼吸。痛、暈、喘，就停。舉不高就舉低，不為了過關把肩膀扛上去。這一頁負責把幅度、角度和聳肩顯示出來，適不適合做某個動作由現場的人決定。</p>
+      </div>
+    </section>
+
+    <section id="judge">
+      <h2>怎麼算過關</h2>
+      <p>第四拍起才看三件事。幅度和角度要進到虛影的範圍，肩膀要留在原位。發力那一句不參加判斷。前三拍不判對錯。</p>
+      <div class="spec-list">
+        <article>
+          <h3>幅度</h3>
+          <p>手腕沿著這個動作該走的方向，到達虛影的 85% 以上。姿勢打開不走這條，改看下面的示範目標。</p>
+        </article>
+        <article>
+          <h3>角度</h3>
+          <p>上臂和身體的夾角、手肘的夾角，和目標差在 15 度以內。肩高先定成上臂和身體約 90 度，手肘打直先定成接近 180 度。</p>
+        </article>
+        <article>
+          <h3>聳肩</h3>
+          <p>耳朵到肩膀的距離，比校正時的原位少了軀幹長度的 0.12 以上。最近 8 幀裡有 6 幀成立，就判聳肩。幅度夠了也不算過。</p>
+        </article>
+        <article>
+          <h3>拍子</h3>
+          <p>約每秒一拍。骨架約每秒看 15 次。前三拍不判。第四拍起，每一拍的最近 8 幀裡有 6 幀同時滿足幅度、角度和肩膀，這一格才前進。拍子不回到第一拍，沒有失敗次數。</p>
+        </article>
+      </div>
+      <h3>示範三格的目標</h3>
+      <div class="spec-list">
+        <article>
+          <h3>姿勢打開</h3>
+          <p>兩側手腕留在肩膀以下，外側距離小於肩寬的 0.35 倍。肩膀比原位更靠近耳朵，就不算打開。</p>
+        </article>
+        <article>
+          <h3>向前平舉</h3>
+          <p>兩側手腕高於肩膀，至少高出軀幹長度的 0.15 倍，而且低於耳朵。手沒有打到向側那麼開。停在肩高。</p>
+        </article>
+        <article>
+          <h3>向側平舉</h3>
+          <p>左腕在左肩外側、右腕在右肩外側，距離大於肩寬的 0.35 倍。手腕高度落在肩膀上下、軀幹長度的 0.30 倍以內。肩寬在校正時凍住。</p>
+        </article>
+      </div>
+      <p>其餘七個沿用手腕、手肘和肩膀這組點。手向前送還要用到深度，等前三格在真人身上穩了再寫數字。0.12、15 度和 85% 都是起始值。</p>
+      <h3>聳肩的算法</h3>
+      <p>影像的 y 向下變大。耳朵在肩膀上面，所以肩膀 y 減掉耳朵 y 是正的。這個差距變短，就是肩膀靠近耳朵。左右先合成中點；若某一側耳朵看不到，就用看得到的那一側。軀幹長度在校正時凍住，避免聳肩本身把比例的分母帶著漂。</p>
+      <pre>ratio = (shoulderY - earY) / torso0
+shrug = ratio &lt; baseline - 0.12</pre>
+    </section>
+
+    <section id="tech">
+      <h2>使用技術</h2>
+      <p class="sub">影像留在這台電腦，畫面不傳出去。直接點開檔案時，骨架程式常常載不進來，所以用本機靜態伺服器打開。</p>
+      <ol class="pipe">
+        <li>攝影機</li>
+        <li>骨架</li>
+        <li>幅度與角度</li>
+        <li>虛影</li>
+        <li>箱子</li>
+      </ol>
+      <div class="spec-list">
+        <article>
+          <h3>網頁</h3>
+          <p>一個 HTML 檔。大字、動作圖示和發力那一句用 HTML。虛影、實影、空隙和箱子用 Canvas。</p>
+        </article>
+        <article>
+          <h3>攝影機</h3>
+          <p><code>getUserMedia</code>，640×480。鏡頭大約在胸口高度，拍到上半身。</p>
+        </article>
+        <article>
+          <h3>骨架</h3>
+          <p>MediaPipe Pose Landmarker，lite 模型。單人時抓一個，雙人時 <code>numPoses</code> 設為 2。每個人讀耳朵、肩膀、手肘、手腕和髖。</p>
+        </article>
+        <article>
+          <h3>節奏與聲音</h3>
+          <p>拍子由網頁自己計。每一拍一聲短敲，第四拍起換成另一聲，直到這一格過關。名稱和發力只寫在畫面上，不念。單人從第四拍起，還沒對上就用 <code>speechSynthesis</code> 念空隙的方向。雙人的方向由報的人說。兩邊在聳肩時都念「肩膀」。</p>
+        </article>
+      </div>
+      <h3>骨架怎麼接</h3>
+      <p>用瀏覽器版的 <code>@mediapipe/tasks-vision</code>。GPU 起不來就改走 CPU。雙人依肩膀中心的左右排序，這一場都沿用這個順序。</p>
+      <pre>const landmarker = await PoseLandmarker.createFromOptions(vision, {
+  baseOptions: { modelAssetPath: POSE_MODEL, delegate: "GPU" },
+  runningMode: "VIDEO",
+  numPoses: 2
+});</pre>
+      <p>畫面先左右鏡像，再拿來判斷。左腕是玩家自己的左腕。沿用 BlazePose 的 33 點。這份只讀：左耳 7、右耳 8、左肩 11、右肩 12、左肘 13、右肘 14、左腕 15、右腕 16、左髖 23、右髖 24。點的可見度低於 0.5，或兩個人的肩膀框疊在一起，這一幀丟掉。連續丟幀超過半秒，畫面寫「一起」，拍子暫停。人回到畫面，從暫停的這一拍繼續。</p>
+    </section>
+
+    <section id="scope">
+      <h2>這一版的範圍</h2>
+      <ul class="plain">
+        <li>筆電上的 Chrome 或 Edge，一顆攝影機。單人坐中間。雙人同框，一格只有一個人做，另一個人報，下一格對調。畫面左邊的人先做。</li>
+        <li>動作庫十個。示範一場只走「身邊，前面，兩側」這三格。開頭看兩個圖示。之後只新看再下一格，即將要做的那一格不再教。</li>
+        <li>前三拍不顯示名稱和虛影。第四拍起才疊虛影，拍子繼續直到對上，不重來，不計失敗次數。</li>
+        <li>過關看幅度和角度。發力那一句只說明。聳肩仍然不算過。姿勢打開不用 85% 那條。</li>
+        <li>坐著做，頭到腰入鏡，約一臂遠，椅子不要扶手。校正不穩就重記兩秒。短袖比高領、披肩容易讓肩膀被看見。</li>
+      </ul>
+      <h3>前三格在真人身上穩了再加</h3>
+      <ul class="plain">
+        <li>手機。</li>
+        <li>第二種代償，例如身體歪去代勞。</li>
+        <li>把另外七個寫成同樣精確的門檻，並把一場的路線加長。</li>
+        <li>記的順序從兩個加到三個。</li>
+      </ul>
+    </section>
+
+    <footer>文件 1.1。動作名稱來自台大醫院上肢阻力運動、成大醫院坐姿運動，以及國民健康署坐姿操。拍子、虛影、規律和益智順序是這個遊戲自己的玩法。</footer>
+  </main>
+</body>
+</html>
